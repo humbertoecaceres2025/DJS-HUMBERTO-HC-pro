@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>DJ Humberto Mix Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      max-width: 200px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 2em;
+      color: #0ff;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #f0f, 0 0 30px #0ff;
+    }
+    #player-controls button {
+      background: none;
+      border: 2px solid #0ff;
+      color: #0ff;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    #player-controls button:hover {
+      background-color: #0ff;
+      color: #000;
+    }
+    #playlist {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 20px;
+      border: 1px solid #0ff;
+      border-radius: 10px;
+      padding: 10px;
+      width: 80%;
+    }
+    .track {
+      margin: 5px;
+      padding: 5px;
+      cursor: pointer;
+    }
+    .track.active {
+      background-color: #0ff;
+      color: #000;
+      border-radius: 5px;
+    }
+    #dropZone {
+      margin: 15px;
+      padding: 20px;
+      border: 2px dashed #0ff;
+      border-radius: 10px;
+      text-align: center;
+      color: #0ff;
+    }
+    #visualizer {
+      width: 100%;
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img id="logoImg" src="logo.png" alt="DJ Humberto Logo">
+    <h1>DJ HUMBERTO MIX EN VIVO</h1>
+  </header>
+
+  <div id="dropZone">Arrastra y suelta tus archivos aquí</div>
+
+  <audio id="audio" controls></audio>
+  <canvas id="visualizer"></canvas>
+
+  <div id="player-controls">
+    <button onclick="prevTrack()">⏮️</button>
+    <button onclick="togglePlay()">▶️/⏸️</button>
+    <button onclick="nextTrack()">⏭️</button>
+    <button onclick="toggleShuffle()">🔀</button>
+    <button onclick="toggleLoop()">🔁</button>
+    <button onclick="exportPlaylist()">💾 Exportar</button>
+    <button onclick="importPlaylist()">📂 Importar</button>
+  </div>
+
+  <input type="file" id="fileInput" multiple accept="audio/*,video/*">
+  <div id="playlist"></div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playlistDiv = document.getElementById('playlist');
+    let playlist = JSON.parse(localStorage.getItem('dj_playlist')) || [];
+    let currentIndex = 0;
+    let shuffle = false;
+    let loop = false;
+
+    function renderPlaylist() {
+      playlistDiv.innerHTML = '';
+      playlist.forEach((track, index) => {
+        const div = document.createElement('div');
+        div.classList.add('track');
+        if (index === currentIndex) div.classList.add('active');
+        div.textContent = track.name;
+        div.onclick = () => playTrack(index);
+        playlistDiv.appendChild(div);
+      });
+      localStorage.setItem('dj_playlist', JSON.stringify(playlist));
+    }
+
+    function playTrack(index) {
+      currentIndex = index;
+      const track = playlist[currentIndex];
+      audio.src = track.url;
+      audio.play();
+      renderPlaylist();
+    }
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      playTrack(currentIndex);
+    }
+
+    function nextTrack() {
+      if (shuffle) {
+        currentIndex = Math.floor(Math.random() * playlist.length);
+      } else {
+        currentIndex = (currentIndex + 1) % playlist.length;
+      }
+      playTrack(currentIndex);
+    }
+
+    function togglePlay() {
+      if (audio.paused) audio.play();
+      else audio.pause();
+    }
+
+    function toggleShuffle() {
+      shuffle = !shuffle;
+      alert('Shuffle ' + (shuffle ? 'Activado' : 'Desactivado'));
+    }
+
+    function toggleLoop() {
+      loop = !loop;
+      audio.loop = loop;
+      alert('Loop ' + (loop ? 'Activado' : 'Desactivado'));
+    }
+
+    function exportPlaylist() {
+      const blob = new Blob([JSON.stringify(playlist)], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'playlist.json';
+      a.click();
+    }
+
+    function importPlaylist() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+          playlist = JSON.parse(reader.result);
+          renderPlaylist();
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+      for (let file of e.target.files) {
+        playlist.push({name: file.name, url: URL.createObjectURL(file)});
+      }
+      renderPlaylist();
+    });
+
+    // Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#111';
+    });
+    dropZone.addEventListener('dragleave', e => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = 'transparent';
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      for (let file of e.dataTransfer.files) {
+        playlist.push({name: file.name, url: URL.createObjectURL(file)});
+      }
+      renderPlaylist();
+      dropZone.style.backgroundColor = 'transparent';
+    });
+
+    // Visualizer
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    const source = ctx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+    const canvas = document.getElementById('visualizer');
+    const cctx = canvas.getContext('2d');
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+      requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(dataArray);
+      cctx.fillStyle = '#000';
+      cctx.fillRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / bufferLength);
+      let x = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i];
+        cctx.fillStyle = 'rgb(' + (barHeight+100) + ',50,200)';
+        cctx.fillRect(x, canvas.height-barHeight/2, barWidth, barHeight/2);
+        x += barWidth + 1;
+      }
+    }
+    draw();
+
+    audio.onended = () => {
+      if (!loop) nextTrack();
+    };
+
+    renderPlaylist();
+  </script>
+</body>
+</html>
+
+
+
