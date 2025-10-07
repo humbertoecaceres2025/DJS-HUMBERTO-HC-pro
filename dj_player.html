@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DJ Humberto Mix — Panel DJ</title>
+<style>
+:root{--bg:#050507;--panel:#0b0b10;--accent1:#00d4ff;--accent2:#ff00d2;--glass:rgba(255,255,255,0.03)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:radial-gradient(900px 400px at 10% 10%, rgba(0,212,255,0.02), transparent), var(--bg);color:#eaf6ff}
+.app{display:flex;flex-direction:column;height:100vh;padding:18px;gap:12px}
+.header{display:flex;align-items:center;gap:12px}
+.logo{width:64px;height:64px;border-radius:8px;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+.logo img{width:100%;height:100%;object-fit:contain}
+.title{font-size:18px;color:var(--accent1);text-shadow:0 0 8px rgba(0,212,255,0.06)}
+.controls-row{display:flex;gap:12px;align-items:center}
+.main{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1}
+.deck{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;display:flex;flex-direction:column;gap:10px}
+.deck h3{margin:0;color:var(--accent2)}
+.deck .art{height:140px;border-radius:8px;background:linear-gradient(90deg, rgba(0,0,0,0.2), rgba(255,255,255,0.02));display:flex;align-items:center;justify-content:center;overflow:hidden}
+.deck .art img{max-width:100%;max-height:100%;object-fit:cover}
+.deck .meters{display:flex;gap:8px;align-items:center}
+.fader{writing-mode:vertical-rl;height:120px;margin-right:8px}
+.crossfader{height:8px;border-radius:8px;background:linear-gradient(90deg,var(--accent1),var(--accent2));margin:8px 0}
+.controls{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+.slider{width:140px}
+.footer{display:flex;justify-content:space-between;align-items:center;padding-top:6px;color:rgba(255,255,255,0.6)}
+
+/* responsive */
+@media(max-width:900px){.main{grid-template-columns:1fr;}.header{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo"><img src="logo.png" alt="Logo"></div>
+    <div>
+      <div class="title">DJ HUMBERTO MIX · PANEL DJ</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)">Doble deck · crossfader · efectos visuales · video/audio</div>
+    </div>
+    <div style="margin-left:auto" class="controls-row">
+      <label class="btn">Agregar pistas<input id="globalFiles" type="file" multiple accept="audio/*,video/*" style="display:none"></label>
+      <button class="btn" id="saveList">Guardar lista</button>
+      <button class="btn" id="exportJson">Exportar .json</button>
+      <button class="btn" id="clearList">Limpiar</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Deck A -->
+    <div class="deck" id="deckA">
+      <h3>Deck A</h3>
+      <div class="art" id="artA"><img id="artImgA" src="" alt="" style="display:none"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div>
+          <button class="btn" id="loadA">Cargar</button>
+          <input type="file" id="fileA" accept="audio/*,video/*" style="display:none">
+        </div>
+        <div class="controls">
+          <button class="btn" id="playA">▶</button>
+          <button class="btn" id="pauseA">⏸</button>
+          <button class="btn" id="stopA">⏹</button>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <label>Vol</label><input type="range" id="volA" min="0" max="1" step="0.01" value="1" class="slider">
+        </div>
+      </div>
+      <div class="meters">
+        <canvas id="meterA" width="300" height="40"></canvas>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div>Progreso</div><input type="range" id="seekA" min="0" max="100" value="0" style="flex:1">
+        <div id="timeA" style="min-width:70px;text-align:right">00:00 / 00:00</div>
+      </div>
+    </div>
+
+    <!-- Deck B -->
+    <div class="deck" id="deckB">
+      <h3>Deck B</h3>
+      <div class="art" id="artB"><img id="artImgB" src="" alt="" style="display:none"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div>
+          <button class="btn" id="loadB">Cargar</button>
+          <input type="file" id="fileB" accept="audio/*,video/*" style="display:none">
+        </div>
+        <div class="controls">
+          <button class="btn" id="playB">▶</button>
+          <button class="btn" id="pauseB">⏸</button>
+          <button class="btn" id="stopB">⏹</button>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <label>Vol</label><input type="range" id="volB" min="0" max="1" step="0.01" value="1" class="slider">
+        </div>
+      </div>
+      <div class="meters">
+        <canvas id="meterB" width="300" height="40"></canvas>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div>Progreso</div><input type="range" id="seekB" min="0" max="100" value="0" style="flex:1">
+        <div id="timeB" style="min-width:70px;text-align:right">00:00 / 00:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crossfader and master controls -->
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="flex:1">
+      <div>Crossfader</div>
+      <input id="cross" type="range" min="0" max="1" step="0.01" value="0.5" class="crossfader" style="width:100%">
+    </div>
+    <div style="width:220px;display:flex;align-items:center;gap:8px">
+      <label>Master</label><input id="masterVol" type="range" min="0" max="1" step="0.01" value="1" class="slider">
+      <button class="btn" id="syncTempo">Sync Tempo</button>
+    </div>
+  </div>
+
+  <!-- Playlist area -->
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <div style="flex:1">
+      <div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong>Lista de pistas</strong>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="addToList">Agregar seleccionadas</button>
+            <button class="btn" id="playSelected">Reproducir seleccionado</button>
+          </div>
+        </div>
+        <div id="list" style="max-height:160px;overflow:auto"></div>
+      </div>
+    </div>
+    <div style="width:260px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02)">
+      <div style="margin-bottom:8px"><strong>Consejos</strong></div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)">
+        1. Cargá pistas en cada deck.<br>
+        2. Usa el crossfader para mezclar.<br>
+        3. Guardá tu lista para usarla luego.<br>
+        4. Soporta audio y video locales.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">DJ Humberto Mix © 2025 · Panel DJ avanzado</div>
+</div>
+
+<!-- Hidden media elements -->
+<audio id="audioA" crossorigin></audio>
+<video id="videoA" style="display:none" playsinline></video>
+<audio id="audioB" crossorigin></audio>
+<video id="videoB" style="display:none" playsinline></video>
+
+<script>
+// Utilities
+const $ = id => document.getElementById(id);
+const formatTime = s => {
+  if(!isFinite(s)) return '00:00';
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = Math.floor(s%60).toString().padStart(2,'0');
+  return m+':'+sec;
+};
+
+// Elements
+const audioA = $('audioA'), audioB = $('audioB');
+const videoA = $('videoA'), videoB = $('videoB');
+const playA = $('playA'), pauseA = $('pauseA'), stopA = $('stopA');
+const playB = $('playB'), pauseB = $('pauseB'), stopB = $('stopB');
+const volA = $('volA'), volB = $('volB'), masterVol = $('masterVol'), cross = $('cross');
+const seekA = $('seekA'), seekB = $('seekB'), timeA = $('timeA'), timeB = $('timeB');
+const loadA = $('loadA'), loadB = $('loadB'), fileA = $('fileA'), fileB = $('fileB');
+const meterA = $('meterA').getContext('2d'), meterB = $('meterB').getContext('2d');
+const artImgA = $('artImgA'), artImgB = $('artImgB');
+const listEl = $('list');
+const globalFiles = $('globalFiles');
+
+// Playlist storage
+let playlist = JSON.parse(localStorage.getItem('dh_advanced_playlist') || '[]');
+
+function savePlaylist(){ localStorage.setItem('dh_advanced_playlist', JSON.stringify(playlist)); renderList(); }
+function renderList(){
+  listEl.innerHTML='';
+  playlist.forEach((p,i)=>{
+    const d = document.createElement('div'); d.style.padding='6px'; d.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+    d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="flex:1">${p.name}</div><div style="display:flex;gap:6px"><button class="btn" data-i="${i}" onclick="loadIntoDeck(event, 'A')">Cargar A</button><button class="btn" data-i="${i}" onclick="loadIntoDeck(event, 'B')">Cargar B</button></div></div>`;
+    listEl.appendChild(d);
+  });
+}
+
+// Handle file inputs
+fileA.addEventListener('change', async e => { if(e.target.files[0]) await loadFileToDeck(e.target.files[0], 'A'); e.target.value=''; });
+fileB.addEventListener('change', async e => { if(e.target.files[0]) await loadFileToDeck(e.target.files[0], 'B'); e.target.value=''; });
+
+loadA.onclick = ()=> fileA.click();
+loadB.onclick = ()=> fileB.click();
+
+globalFiles.addEventListener('change', e=>{
+  for(const f of e.target.files){
+    playlist.push({name:f.name, fileName:f.name, type: f.type, url: URL.createObjectURL(f)});
+  }
+  savePlaylist();
+  globalFiles.value='';
+});
+
+$('addToList').onclick = ()=>{
+  const pushFrom = [audioA.src||videoA.src, audioB.src||videoB.src];
+  pushFrom.forEach(src=>{ if(src){ playlist.push({name: src.split('/').pop()||'pista', fileName: src, type:'audio', url:src}); } });
+  savePlaylist();
+};
+
+$('saveList').onclick = ()=>{ savePlaylist(); alert('Lista guardada en este navegador'); };
+$('exportJson').onclick = ()=>{
+  const b = new Blob([JSON.stringify(playlist,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='playlist-dh-advanced.json'; a.click();
+};
+$('clearList').onclick = ()=>{ if(confirm('Borrar lista?')){ playlist=[]; savePlaylist(); } };
+
+$('playSelected').onclick = ()=>{ if(playlist.length) loadIntoDeckByIndex(0,'A'); };
+
+renderList();
+
+// Load file to deck
+async function loadFileToDeck(file, deck){
+  const url = URL.createObjectURL(file);
+  const name = file.name;
+  if(deck==='A'){ setSource(url, name, file.type, 'A'); playlist.push({name:file.name, fileName:file.name, type:file.type, url}); savePlaylist(); }
+  else { setSource(url,name,file.type,'B'); playlist.push({name:file.name, fileName:file.name, type:file.type, url}); savePlaylist(); }
+}
+
+function loadIntoDeck(event, deck){
+  const i = Number(event.target.dataset.i);
+  loadIntoDeckByIndex(i, deck);
+}
+
+function loadIntoDeckByIndex(i, deck){
+  const p = playlist[i];
+  if(!p) return;
+  setSource(p.url, p.name, p.type||'audio', deck);
+}
+
+// Set source
+function setSource(url,name,type,deck){
+  if(deck==='A'){
+    if(type && type.startsWith('video')){ videoA.src=url; videoA.style.display='block'; audioA.style.display='none'; }
+    else { audioA.src=url; audioA.style.display=''; videoA.style.display='none'; }
+    artImgA.src=''; artImgA.style.display='none';
+  } else {
+    if(type && type.startsWith('video')){ videoB.src=url; videoB.style.display='block'; audioB.style.display='none'; }
+    else { audioB.src=url; audioB.style.display=''; videoB.style.display='none'; }
+    artImgB.src=''; artImgB.style.display='none';
+  }
+}
+
+// Playback controls
+playA.onclick = ()=> { (audioA.src||videoA.src) && playMedia('A'); };
+pauseA.onclick = ()=> pauseMedia('A');
+stopA.onclick = ()=> stopMedia('A');
+playB.onclick = ()=> { (audioB.src||videoB.src) && playMedia('B'); };
+pauseB.onclick = ()=> pauseMedia('B');
+stopB.onclick = ()=> stopMedia('B');
+
+function playMedia(deck){
+  if(deck==='A'){ if(videoA.src && videoA.style.display!='none') videoA.play(); else audioA.play(); }
+  else { if(videoB.src && videoB.style.display!='none') videoB.play(); else audioB.play(); }
+}
+
+function pauseMedia(deck){
+  if(deck==='A'){ audioA.pause(); videoA.pause(); }
+  else { audioB.pause(); videoB.pause(); }
+}
+
+function stopMedia(deck){
+  if(deck==='A'){ audioA.pause(); audioA.currentTime=0; videoA.pause(); videoA.currentTime=0; }
+  else { audioB.pause(); audioB.currentTime=0; videoB.pause(); videoB.currentTime=0; }
+}
+
+// Seek update interval
+setInterval(()=>{
+  updateSeek('A'); updateSeek('B');
+},200);
+
+function updateSeek(deck){
+  const media = deck==='A' ? (videoA.style.display!='none' ? videoA : audioA) : (videoB.style.display!='none' ? videoB : audioB);
+  const seek = deck==='A'? seekA:seekB;
+  const timeLabel = deck==='A'? timeA:timeB;
+  if(media && media.duration){
+    seek.max = Math.floor(media.duration);
+    seek.value = Math.floor(media.currentTime);
+    timeLabel.textContent = formatTime(media.currentTime) + ' / ' + formatTime(media.duration);
+  }
+}
+
+// Seeking by user
+seekA.addEventListener('input', ()=>{ const m = (videoA.style.display!='none')?videoA:audioA; if(m.src) m.currentTime = seekA.value; });
+seekB.addEventListener('input', ()=>{ const m = (videoB.style.display!='none')?videoB:audioB; if(m.src) m.currentTime = seekB.value; });
+
+// WebAudio: create gain nodes and analyser for each deck + master
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const sourceA = audioCtx.createMediaElementSource(audioA);
+const sourceB = audioCtx.createMediaElementSource(audioB);
+const gainA = audioCtx.createGain();
+const gainB = audioCtx.createGain();
+const masterGain = audioCtx.createGain();
+const analyserA = audioCtx.createAnalyser();
+const analyserB = audioCtx.createAnalyser();
+gainA.gain.value = volA.value; gainB.gain.value = volB.value; masterGain.gain.value = masterVol.value;
+analyserA.fftSize=256; analyserB.fftSize=256;
+sourceA.connect(gainA); sourceB.connect(gainB);
+gainA.connect(analyserA); gainB.connect(analyserB);
+analyserA.connect(masterGain); analyserB.connect(masterGain);
+masterGain.connect(audioCtx.destination);
+
+// Crossfader control
+cross.addEventListener('input', ()=> updateCross());
+volA.addEventListener('input', ()=> { gainA.gain.value = volA.value; updateCross(); });
+volB.addEventListener('input', ()=> { gainB.gain.value = volB.value; updateCross(); });
+masterVol.addEventListener('input', ()=> { masterGain.gain.value = masterVol.value; });
+
+function updateCross(){
+  const x = parseFloat(cross.value); // 0 => full A, 1 => full B
+  const aGain = Math.cos(x * 0.5 * Math.PI);
+  const bGain = Math.cos((1 - x) * 0.5 * Math.PI);
+  gainA.gain.value = volA.value * aGain;
+  gainB.gain.value = volB.value * bGain;
+}
+
+// Visualizers - draw simple bars for each deck
+const canvasA = document.getElementById('meterA');
+const canvasB = document.getElementById('meterB');
+const ctxA = canvasA.getContext('2d'); const ctxB = canvasB.getContext('2d');
+const dataA = new Uint8Array(analyserA.frequencyBinCount);
+const dataB = new Uint8Array(analyserB.frequencyBinCount);
+
+function drawMeters(){
+  requestAnimationFrame(drawMeters);
+  analyserA.getByteFrequencyData(dataA);
+  analyserB.getByteFrequencyData(dataB);
+  // clear
+  ctxA.clearRect(0,0,canvasA.width,canvasA.height);
+  ctxB.clearRect(0,0,canvasB.width,canvasB.height);
+  // draw A
+  const barWidth = canvasA.width / dataA.length;
+  for(let i=0;i<dataA.length;i++){
+    const v = dataA[i]/255;
+    ctxA.fillStyle = `rgba(${Math.floor(0+v*255)}, ${Math.floor(200-v*150)}, ${Math.floor(255-v*100)}, 0.9)`;
+    ctxA.fillRect(i*barWidth, canvasA.height-(v*canvasA.height), barWidth*0.9, v*canvasA.height);
+  }
+  // draw B
+  const barWidthB = canvasB.width / dataB.length;
+  for(let i=0;i<dataB.length;i++){
+    const v = dataB[i]/255;
+    ctxB.fillStyle = `rgba(${Math.floor(255-v*100)}, ${Math.floor(50+v*150)}, ${Math.floor(200-v*100)}, 0.9)`;
+    ctxB.fillRect(i*barWidthB, canvasB.height-(v*canvasB.height), barWidthB*0.9, v*canvasB.height);
+  }
+}
+drawMeters();
+
+// Sync tempo (basic)
+$('syncTempo').addEventListener('click', ()=>{
+  const dA = audioA.duration || videoA.duration || 0;
+  const dB = audioB.duration || videoB.duration || 0;
+  if(!dA || !dB) return alert('Ambos decks deben tener pistas cargadas para sincronizar');
+  const rate = dA/dB;
+  if(videoB.style.display!='none') videoB.playbackRate = rate;
+  if(audioB.src) audioB.playbackRate = rate;
+  alert('Intento de sincronización aplicado (playbackRate). Para sincronía precisa se requiere detección de BPM.');
+});
+
+// allow play on user gesture (resume audio context)
+document.addEventListener('click', ()=>{ if(audioCtx.state==='suspended') audioCtx.resume(); }, {once:true});
+
+// initial cross update
+updateCross();
+
+</script>
+</body>
+</html>

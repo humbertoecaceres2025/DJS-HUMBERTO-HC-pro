@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DJ Humberto Mix Player – En Vivo</title>
+  <style>
+    html,body{height:100%;margin:0;background:#000;overflow:hidden;font-family:Inter,system-ui,Arial;color:#fff}
+    .intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at center, rgba(0,0,0,0.6), #000);z-index:10}
+    .intro img{width:220px;filter:drop-shadow(0 0 20px #00d4ff);animation:neon 1.6s infinite alternate}
+    .intro h1{margin:12px 0 0;font-size:28px;color:#00d4ff;text-shadow:0 0 14px #00d4ff,0 0 30px #ff00d2}
+    @keyframes neon{from{transform:scale(1)}to{transform:scale(1.02)}}
+    #enter{margin-top:18px;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(90deg, rgba(0,212,255,0.06), rgba(255,0,210,0.04));cursor:pointer}
+    iframe{position:fixed;inset:0;border:0;height:100%;width:100%}
+  </style>
+</head>
+<body>
+  <div class="intro" id="intro">
+    <img src="logo.png" alt="DJ Humberto Logo">
+    <h1>DJ HUMBERTO MIX — EN VIVO</h1>
+    <div id="enter" onclick="enter()">Entrar al reproductor</div>
+  </div>
+  <iframe id="playerFrame" src="dj_player.html" allow="autoplay;encrypted-media"></iframe>
+<script>
+  function enter(){
+    const intro = document.getElementById('intro');
+    intro.style.transition = 'opacity 0.8s ease'; intro.style.opacity = 0;
+    setTimeout(()=>intro.style.display='none',800);
+  }
+  setTimeout(()=>{ if(document.getElementById('intro')) enter(); }, 5000);
+</script>
+</body>
+</html>
