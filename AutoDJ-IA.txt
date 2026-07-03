@@ -1,0 +1,15 @@
+AutoDJ-IA
+│
+├── app
+│   ├── main.py
+│   ├── ui.py
+│   ├── scanner.py
+│   ├── database.py
+│   ├── config.py
+│
+├── database
+│   └── autodj.db
+│
+├── requirements.txt
+├── README.md
+└── .gitignore
