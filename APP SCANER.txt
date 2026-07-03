@@ -1,0 +1,18 @@
+import os
+from app.config import SUPPORTED_AUDIO, SUPPORTED_VIDEO
+from app.database import insert_media
+
+
+def scan_folder(folder_path):
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            full_path = os.path.join(root, file)
+            ext = os.path.splitext(file)[1].lower()
+
+            title = os.path.splitext(file)[0]
+
+            if ext in SUPPORTED_AUDIO:
+                insert_media(title, full_path, "audio")
+
+            elif ext in SUPPORTED_VIDEO:
+                insert_media(title, full_path, "video")
