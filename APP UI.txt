@@ -1,0 +1,54 @@
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QPushButton,
+    QLabel, QFileDialog
+)
+
+from app.scanner import scan_folder
+from app.database import get_stats
+
+
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("AutoDJ IA v0.1")
+        self.setMinimumSize(400, 300)
+
+        layout = QVBoxLayout()
+
+        self.label = QLabel("Estado: esperando...")
+        self.stats = QLabel("Canciones: 0 | Videos: 0")
+
+        self.btn_folder = QPushButton("Agregar carpeta")
+        self.btn_scan = QPushButton("ESCANEAR")
+
+        self.btn_folder.clicked.connect(self.select_folder)
+        self.btn_scan.clicked.connect(self.scan)
+
+        layout.addWidget(self.label)
+        layout.addWidget(self.stats)
+        layout.addWidget(self.btn_folder)
+        layout.addWidget(self.btn_scan)
+
+        self.setLayout(layout)
+
+        self.folder = None
+
+    def select_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta")
+        if folder:
+            self.folder = folder
+            self.label.setText(f"Carpeta: {folder}")
+
+    def scan(self):
+        if not self.folder:
+            self.label.setText("Selecciona una carpeta primero")
+            return
+
+        self.label.setText("Escaneando...")
+        scan_folder(self.folder)
+
+        audio, video = get_stats()
+        self.stats.setText(f"Canciones: {audio} | Videos: {video}")
+
+        self.label.setText("Listo ✔")
